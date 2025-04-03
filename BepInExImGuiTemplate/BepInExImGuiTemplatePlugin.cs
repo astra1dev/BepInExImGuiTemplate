@@ -11,26 +11,29 @@ namespace BepInExImGuiTemplate;
 
 public partial class BepInExImGuiTemplatePlugin : BasePlugin
 {
-    public Harmony Harmony { get; } = new(Id);
-    public static new ManualLogSource Log;
-    
+    private Harmony Harmony { get; } = new(Id);
+    public new static ManualLogSource Log;
+    public static bool IsToggleEnabled { get; set; }
+
     public override void Load()
     {
         Log = base.Log;
-        
+
         Harmony.PatchAll();
-        
+
         // Add the Menu component to the game object
-        this.AddComponent<Menu>();
+        AddComponent<Menu>();
     }
 }
 
 public class Menu : MonoBehaviour
 {
+    // For how to create GUIs, see https://docs.unity3d.com/ScriptReference/GUILayout.html
+
     // Create a rect for the window
-    public Rect windowRect = new(10f, 10f, 300f, 300f);
+    public Rect windowRect = new(10f, 10f, 200f, 300f);
     public bool showWindow = true;
-    
+
     // Override OnGUI to draw the window
     public void OnGUI()
     {
@@ -39,7 +42,13 @@ public class Menu : MonoBehaviour
         // if two mods (plugins) are trying to use the same ID
         windowRect = GUILayout.Window(123, windowRect, (GUI.WindowFunction)WindowFunction, "Window Title");
     }
-    
+
+    // Start is called before the first frame update
+    public void Start()
+    {
+        BepInExImGuiTemplatePlugin.Log.LogInfo("Start() was invoked!");
+    }
+
     // Update is called once per frame
     public void Update()
     {
@@ -49,15 +58,76 @@ public class Menu : MonoBehaviour
             showWindow = !showWindow;
         }
     }
-    
+
     // Window function
     public void WindowFunction(int id)
     {
+        // Add a label using GUILayout.Label
         GUILayout.Label($"Window ID: {id}");
+        // Add a button using GUILayout.Button
         if (GUILayout.Button("Example Button"))
         {
             BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Button was pressed!");
         }
+
+        // Add a toggle using GUILayout.Toggle
+        BepInExImGuiTemplatePlugin.IsToggleEnabled = GUILayout.Toggle(BepInExImGuiTemplatePlugin.IsToggleEnabled, "Example Toggle");
+
+        if (BepInExImGuiTemplatePlugin.IsToggleEnabled)
+        {
+            // Add your logic here for when the toggle is enabled
+            // Ideally you want to create a separate method to handle the toggle state
+            // For example, you can log a message like below, but it will spam the console
+            // BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Toggle is enabled!");
+        }
+        else
+        {
+            // BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Toggle is disabled!");
+        }
+
+        // Things like sliders or text fields do not work because of stripping
+
+        // Add a slider using GUILayout.HorizontalSlider
+        //var sliderValue = GUILayout.HorizontalSlider(0.5f, 0f, 1f);
+        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Slider value: {sliderValue}");
+
+        // Add a text field using GUILayout.TextField
+        //var textFieldValue = GUILayout.TextField("Text Field");
+        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Text field value: {textFieldValue}");
+
+        // Add a text area using GUILayout.TextArea
+        //var textAreaValue = GUILayout.TextArea("Text Area");
+        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Text area value: {textAreaValue}");
+
+
+        // Make the window resizable
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Make Window Narrower"))
+        {
+            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Narrower button was pressed!");
+            windowRect.width -= 10f;
+        }
+        if (GUILayout.Button("Make Window Wider"))
+        {
+            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Wider button was pressed!");
+            windowRect.width += 10f;
+        }
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Make Window Shorter"))
+        {
+            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Shorter button was pressed!");
+            windowRect.height -= 10f;
+        }
+        if (GUILayout.Button("Make Window Taller"))
+        {
+            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Taller button was pressed!");
+            windowRect.height += 10f;
+        }
+        GUILayout.EndHorizontal();
+
+        // Make the window draggable
         GUI.DragWindow();
     }
 }
