@@ -4,16 +4,19 @@ using BepInEx.Unity.IL2CPP;
 using UnityEngine;
 using HarmonyLib;
 
-namespace BepInExImGuiTemplate;
+namespace BepInExTemplates.ImGui;
 
 [BepInAutoPlugin]
 [BepInProcess("Among Us.exe")]
-
-public partial class BepInExImGuiTemplatePlugin : BasePlugin
+public partial class ImGui : BasePlugin
 {
     private Harmony Harmony { get; } = new(Id);
     public new static ManualLogSource Log;
     public static bool IsToggleEnabled { get; set; }
+
+    // Asset stuff
+    private static GameObject _lobbyPaintObject;
+    private static Sprite _lobbyPaintSprite;
 
     public override void Load()
     {
@@ -23,6 +26,23 @@ public partial class BepInExImGuiTemplatePlugin : BasePlugin
 
         // Add the Menu component to the game object
         AddComponent<Menu>();
+    }
+
+    [HarmonyPatch(typeof(LobbyBehaviour), nameof(LobbyBehaviour.Start))]
+    public class ExampleSpriteUsage
+    {
+        public static void Postfix()
+        {
+            // Example of how to use the sprite
+            _lobbyPaintSprite = EmbeddedResource.EmbeddedResource.LoadSprite("BepInExImGuiTemplate.Assets.sandalinus.png");
+            var leftBox = GameObject.Find("Leftbox");
+            if (!leftBox) return;
+            _lobbyPaintObject = Object.Instantiate(leftBox, leftBox.transform.parent.transform);
+            _lobbyPaintObject.name = "Lobby Paint";
+            _lobbyPaintObject.transform.localPosition = new Vector3(0.042f, -2.59f, -10.5f);
+            var renderer = _lobbyPaintObject.GetComponent<SpriteRenderer>();
+            renderer.sprite = _lobbyPaintSprite;
+        }
     }
 }
 
@@ -46,7 +66,7 @@ public class Menu : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
-        BepInExImGuiTemplatePlugin.Log.LogInfo("Start() was invoked!");
+        ImGui.Log.LogInfo("Start() was invoked!");
     }
 
     // Update is called once per frame
@@ -67,49 +87,49 @@ public class Menu : MonoBehaviour
         // Add a button using GUILayout.Button
         if (GUILayout.Button("Example Button"))
         {
-            BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Button was pressed!");
+            ImGui.Log.LogInfo($"Example Button was pressed!");
         }
 
         // Add a toggle using GUILayout.Toggle
-        BepInExImGuiTemplatePlugin.IsToggleEnabled = GUILayout.Toggle(BepInExImGuiTemplatePlugin.IsToggleEnabled, "Example Toggle");
+        ImGui.IsToggleEnabled = GUILayout.Toggle(ImGui.IsToggleEnabled, "Example Toggle");
 
-        if (BepInExImGuiTemplatePlugin.IsToggleEnabled)
+        if (ImGui.IsToggleEnabled)
         {
             // Add your logic here for when the toggle is enabled
             // Ideally you want to create a separate method to handle the toggle state
             // For example, you can log a message like below, but it will spam the console
-            // BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Toggle is enabled!");
+            // ImGui.Log.LogInfo($"Example Toggle is enabled!");
         }
         else
         {
-            // BepInExImGuiTemplatePlugin.Log.LogInfo($"Example Toggle is disabled!");
+            // ImGui.Log.LogInfo($"Example Toggle is disabled!");
         }
 
         // Things like sliders or text fields do not work because of stripping
 
         // Add a slider using GUILayout.HorizontalSlider
         //var sliderValue = GUILayout.HorizontalSlider(0.5f, 0f, 1f);
-        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Slider value: {sliderValue}");
+        //ImGui.Log.LogInfo($"Slider value: {sliderValue}");
 
         // Add a text field using GUILayout.TextField
         //var textFieldValue = GUILayout.TextField("Text Field");
-        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Text field value: {textFieldValue}");
+        //ImGui.Log.LogInfo($"Text field value: {textFieldValue}");
 
         // Add a text area using GUILayout.TextArea
         //var textAreaValue = GUILayout.TextArea("Text Area");
-        //BepInExImGuiTemplatePlugin.Log.LogInfo($"Text area value: {textAreaValue}");
+        //ImGui.Log.LogInfo($"Text area value: {textAreaValue}");
 
 
         // Make the window resizable
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Make Window Narrower"))
         {
-            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Narrower button was pressed!");
+            ImGui.Log.LogInfo("Make Window Narrower button was pressed!");
             windowRect.width -= 10f;
         }
         if (GUILayout.Button("Make Window Wider"))
         {
-            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Wider button was pressed!");
+            ImGui.Log.LogInfo("Make Window Wider button was pressed!");
             windowRect.width += 10f;
         }
         GUILayout.EndHorizontal();
@@ -117,12 +137,12 @@ public class Menu : MonoBehaviour
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Make Window Shorter"))
         {
-            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Shorter button was pressed!");
+            ImGui.Log.LogInfo("Make Window Shorter button was pressed!");
             windowRect.height -= 10f;
         }
         if (GUILayout.Button("Make Window Taller"))
         {
-            BepInExImGuiTemplatePlugin.Log.LogInfo("Make Window Taller button was pressed!");
+            ImGui.Log.LogInfo("Make Window Taller button was pressed!");
             windowRect.height += 10f;
         }
         GUILayout.EndHorizontal();
